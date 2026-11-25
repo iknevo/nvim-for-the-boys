@@ -9,10 +9,23 @@ import {
 import { useBindings } from "@opentui/keymap/react"
 import { useRenderer, useTerminalDimensions } from "@opentui/react"
 import { Effect } from "effect"
-import { useEffect, useRef, useState } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import type { DeckKeybindings, ResolvedDeckConfig } from "./config"
 import { buildKittyDeleteSequence, writeKittyImage, type ImageRenderError } from "./image"
 import type { Deck, Slide, SlideContentBlock, SlideLayout } from "./types"
+
+/** Vertical gaps, in rows. Short terminals get the compact set so slides fit instead of clipping. */
+interface Spacing {
+  readonly block: number
+  readonly codePad: number
+  readonly subtitle: number
+  readonly heading: number
+  readonly stagePadY?: number
+}
+const roomySpacing: Spacing = { block: 2, codePad: 1, subtitle: 2, heading: 4 }
+const compactSpacing: Spacing = { block: 1, codePad: 0, subtitle: 1, heading: 1, stagePadY: 0 }
+const compactBelowHeight = 36
+const SpacingContext = createContext<Spacing>(roomySpacing)
 
 let imageIdCounter = 1
 
@@ -219,6 +232,7 @@ function CodeBlockView({ block, markdownStyle, colors }: { readonly block: Extra
       lineNumber.setLineSign(startIndex, { before: "▏", beforeColor: colors.progress })
     }
   }, [block.highlights, colors.codeBackground, colors.codeBorder, colors.progress])
+  const spacing = useContext(SpacingContext)
 
   return (
     <box
@@ -228,14 +242,14 @@ function CodeBlockView({ block, markdownStyle, colors }: { readonly block: Extra
         borderStyle: "rounded",
         borderColor: colors.codeBorder,
         backgroundColor: colors.codeBackground,
-        paddingTop: 1,
+        paddingTop: spacing.codePad,
         paddingRight: 2,
-        paddingBottom: 1,
+        paddingBottom: spacing.codePad,
         paddingLeft: 2,
-        marginBottom: 2,
+        marginBottom: spacing.block,
       }}
     >
-      <box style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
+      <box style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", marginBottom: spacing.codePad }}>
         <text style={{ fg: colors.muted }}>{block.title || block.filename || block.language || "text"}</text>
         <text style={{ fg: colors.muted }}>{highlightText ?? (block.showLineNumbers ? "line numbers" : "")}</text>
       </box>
@@ -350,6 +364,7 @@ function TerminalImageBlock({ block, colors, baseDir }: { readonly block: Extrac
 }
 
 function SlideBlock({ block, markdownStyle, colors, baseDir }: SlideBlockProps) {
+  const spacing = useContext(SpacingContext)
   switch (block.type) {
     case "slot":
       return null
@@ -403,7 +418,7 @@ function SlideBlock({ block, markdownStyle, colors, baseDir }: SlideBlockProps) 
             border: ["left"],
             borderColor: color,
             paddingLeft: 2,
-            marginBottom: 2,
+            marginBottom: spacing.block,
             flexDirection: "column",
           }}
         >
@@ -428,7 +443,7 @@ function SlideBlock({ block, markdownStyle, colors, baseDir }: SlideBlockProps) 
 
     case "table":
       return (
-        <box style={{ flexDirection: "column", marginBottom: 2 }}>
+        <box style={{ flexDirection: "column", marginBottom: spacing.block }}>
           {tableLines(block.headers, block.rows).map((line, index) => (
             <text
               key={`${line}-${index}`}
@@ -507,6 +522,7 @@ interface LayoutProps {
   readonly colors: ResolvedDeckConfig["theme"]["colors"]
   readonly baseDir: string
   readonly hasContent: boolean
+  readonly spacing: Spacing
 }
 
 function SlideTitle({ title, colors, maxLength = 28 }: { readonly title: string; readonly colors: ResolvedDeckConfig["theme"]["colors"]; readonly maxLength?: number }) {
@@ -518,10 +534,11 @@ function SlideTitle({ title, colors, maxLength = 28 }: { readonly title: string;
 }
 
 function SlideSubtitle({ subtitle, colors }: { readonly subtitle?: string; readonly colors: ResolvedDeckConfig["theme"]["colors"] }) {
-  return subtitle ? <text style={{ fg: colors.muted, marginTop: 2 }}>{subtitle}</text> : null
+  const spacing = useContext(SpacingContext)
+  return subtitle ? <text style={{ fg: colors.muted, marginTop: spacing.subtitle }}>{subtitle}</text> : null
 }
 
-function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, baseDir, hasContent }: LayoutProps) {
+function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, baseDir, hasContent, spacing }: LayoutProps) {
   const visibleBlocks = nonSlotBlocks(blocks)
 
   switch (layout) {
@@ -529,7 +546,7 @@ function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, 
     case "center":
       return (
         <box style={{ width: "100%", height: "100%", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <box style={{ alignItems: "center", marginBottom: hasContent ? 5 : 0 }}>
+          <box style={{ alignItems: "center", marginBottom: hasContent ? spacing.heading + 1 : 0 }}>
             <SlideTitle title={title} colors={colors} />
             <SlideSubtitle subtitle={subtitle} colors={colors} />
           </box>
@@ -552,7 +569,7 @@ function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, 
     case "statement":
       return (
         <box style={{ width: "100%", height: "100%", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <box style={{ alignItems: "center", marginBottom: 3 }}>
+          <box style={{ alignItems: "center", marginBottom: spacing.heading - 1 || 1 }}>
             <text style={{ fg: colors.title }}>{title.toUpperCase()}</text>
             <SlideSubtitle subtitle={subtitle} colors={colors} />
           </box>
@@ -585,7 +602,7 @@ function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, 
       const columns = splitColumnBlocks(blocks)
       return (
         <box style={{ width: "100%", height: "100%", flexDirection: "column", justifyContent: "center" }}>
-          <box style={{ width: "100%", alignItems: "center", marginBottom: 4 }}>
+          <box style={{ width: "100%", alignItems: "center", marginBottom: spacing.heading }}>
             <text style={{ fg: colors.title }}>{title.toUpperCase()}</text>
             <SlideSubtitle subtitle={subtitle} colors={colors} />
           </box>
@@ -606,12 +623,12 @@ function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, 
       const otherBlocks = visibleBlocks.filter((block) => block.type !== "code")
       return (
         <box style={{ width: "100%", height: "100%", flexDirection: "column", justifyContent: "center" }}>
-          <box style={{ width: "100%", alignItems: "center", marginBottom: 3 }}>
+          <box style={{ width: "100%", alignItems: "center", marginBottom: spacing.heading - 1 || 1 }}>
             <text style={{ fg: colors.title }}>{title.toUpperCase()}</text>
             <SlideSubtitle subtitle={subtitle} colors={colors} />
           </box>
           <SlideBlocks blocks={codeBlocks.length > 0 ? codeBlocks : visibleBlocks} markdownStyle={markdownStyle} colors={colors} baseDir={baseDir} />
-          {otherBlocks.length > 0 ? <box style={{ width: "100%", marginTop: 2 }}><SlideBlocks blocks={otherBlocks} markdownStyle={markdownStyle} colors={colors} baseDir={baseDir} /></box> : null}
+          {otherBlocks.length > 0 ? <box style={{ width: "100%", marginTop: spacing.block }}><SlideBlocks blocks={otherBlocks} markdownStyle={markdownStyle} colors={colors} baseDir={baseDir} /></box> : null}
         </box>
       )
     }
@@ -620,7 +637,7 @@ function renderLayout({ layout, title, subtitle, blocks, markdownStyle, colors, 
     default:
       return (
         <box style={{ width: "100%", height: "100%", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <box style={{ width: "100%", alignItems: "center", marginBottom: hasContent ? 4 : 0 }}>
+          <box style={{ width: "100%", alignItems: "center", marginBottom: hasContent ? spacing.heading : 0 }}>
             <SlideTitle title={title} colors={colors} />
             <SlideSubtitle subtitle={subtitle} colors={colors} />
           </box>
@@ -650,6 +667,7 @@ export function DeckApp({ deck, fileName, baseDir, config }: DeckAppProps) {
   const headerText = primaryText(chromeBlocks.header)
   const footerText = primaryText(chromeBlocks.footer)
   const shouldScrollContent = isLongContent(content, layout.longContentLineThreshold)
+  const spacing = terminal.height < compactBelowHeight ? compactSpacing : roomySpacing
 
   useBindings(
     () => ({
@@ -692,6 +710,7 @@ export function DeckApp({ deck, fileName, baseDir, config }: DeckAppProps) {
   )
 
   return (
+    <SpacingContext.Provider value={spacing}>
     <box
       style={{
         height: terminal.height,
@@ -723,9 +742,9 @@ export function DeckApp({ deck, fileName, baseDir, config }: DeckAppProps) {
           flexGrow: 1,
           alignItems: "center",
           justifyContent: "center",
-          paddingTop: layout.stagePaddingY,
+          paddingTop: spacing.stagePadY ?? layout.stagePaddingY,
           paddingRight: layout.stagePaddingX,
-          paddingBottom: layout.stagePaddingY,
+          paddingBottom: spacing.stagePadY ?? layout.stagePaddingY,
           paddingLeft: layout.stagePaddingX,
         }}
       >
@@ -752,10 +771,10 @@ export function DeckApp({ deck, fileName, baseDir, config }: DeckAppProps) {
                 backgroundColor: colors.appBackground,
               }}
             >
-              {renderLayout({ layout: slide.layout, title, subtitle, blocks: chromeBlocks.main, markdownStyle, colors, baseDir, hasContent })}
+              {renderLayout({ layout: slide.layout, title, subtitle, blocks: chromeBlocks.main, markdownStyle, colors, baseDir, hasContent, spacing })}
             </scrollbox>
           ) : (
-            renderLayout({ layout: slide.layout, title, subtitle, blocks: chromeBlocks.main, markdownStyle, colors, baseDir, hasContent })
+            renderLayout({ layout: slide.layout, title, subtitle, blocks: chromeBlocks.main, markdownStyle, colors, baseDir, hasContent, spacing })
           )}
         </box>
       </box>
@@ -788,5 +807,6 @@ export function DeckApp({ deck, fileName, baseDir, config }: DeckAppProps) {
         </box>
       )}
     </box>
+    </SpacingContext.Provider>
   )
 }

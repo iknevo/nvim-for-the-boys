@@ -41,11 +41,11 @@ subtitle: what you get for the effort
 
 | Reason | What it means for you |
 | --- | --- |
-| Hands stay on the keyboard | no reaching for the mouse |
-| Editing is a language | learn a grammar, not 500 shortcuts |
+| Hands on the keyboard | no reaching for the mouse |
+| Editing is a language | a grammar, not 500 shortcuts |
 | Lightweight | starts instantly, even on servers |
-| It's everywhere | Vim keys work in VS Code, JetBrains, browsers |
-| It's yours | shape it into exactly the editor you want |
+| It's everywhere | Vim keys work in most editors |
+| It's yours | shape it into your own editor |
 | Free and open source | no license, no account, no telemetry |
 
 :::warning An honest warning
@@ -102,10 +102,10 @@ subtitle: you visit the other modes, then come home
 
 | Mode | Use it to | Bottom shows | Enter → Leave |
 | --- | --- | --- | --- |
-| Normal | move, delete, copy, undo | (nothing) | Esc → (home) |
-| Insert | type new text | -- INSERT -- | i a o → Esc |
+| Normal | move, delete, undo | (nothing) | Esc → (home) |
+| Insert | type text | -- INSERT -- | i a o → Esc |
 | Visual | select, then act | -- VISUAL -- | v V Ctrl+v → Esc |
-| Command-line | save, quit, replace | : prompt | : → Enter or Esc |
+| Cmd-line | save, quit, replace | : prompt | : → Enter / Esc |
 
 :::tip Normal mode is home base
 Neovim **starts** in Normal mode. When in doubt, press **Esc**. It's always safe.
@@ -141,7 +141,7 @@ Moving around in Normal mode. All of it.
 
 # One Step At A Time
 ---
-subtitle: h  j  k  l
+subtitle: h  j  k  l  (arrow keys still work, use them if hjkl feels bad)
 ---
 
 | Key | Moves |
@@ -152,11 +152,7 @@ subtitle: h  j  k  l
 | l | right |
 
 :::note Counts
-Put a number first: `5j` down 5 lines, `3l` right 3, `10G` line 10. Works with almost every command.
-:::
-
-:::tip Why not arrow keys?
-Your right hand already rests on `j k l`. Arrow keys still work, so **use them if hjkl feels bad**.
+`5j` = down 5 lines, `10G` = line 10. Works with most commands.
 :::
 
 # Words
@@ -170,8 +166,8 @@ subtitle: w  b  e
 | b | start of the previous word |
 | e | end of the word |
 
-:::note What is a word?
-A run of **letters/digits/underscores**, or a run of **punctuation**. `user.name` has three stops: `user` · `.` · `name`
+:::note Punctuation is its own word
+`user.name` has three stops: `user` · `.` · `name`
 :::
 
 :::tip Bonus
@@ -180,22 +176,15 @@ A run of **letters/digits/underscores**, or a run of **punctuation**. `user.name
 
 # Moving Within A Line
 ---
-subtitle: 0  ^  $
+subtitle: in code, ^ is usually what you want
 ---
-
-| Key | Moves to |
-| --- | --- |
-| 0 | column zero |
-| ^ | first non-blank character |
-| $ | end of the line |
 
 ```text
     return total;
-^                    0 lands here (a space)
-    ^                ^ lands here (on "r")
+^                     0  column zero
+    ^                 ^  first non-blank character
+                ^     $  end of the line
 ```
-
-In code, `^` is usually what you want.
 
 # Moving Through The File
 ---
@@ -247,18 +236,15 @@ subtitle: copying is called yanking (c was taken by change)
 
 | Key | Does | Example |
 | --- | --- | --- |
-| x | delete the character under the cursor | cheese → chese |
-| dw | delete to the next word | the reusable bags → the bags |
-| dd | delete the whole line | |
-| yy | yank (copy) the current line | |
-| p / P | put (paste) after / before | |
+| x | delete one character | cheese → chese |
+| dw | delete to the next word | the old bags → the bags |
+| dd | delete the line | |
+| yy | yank (copy) the line | |
+| p / P | paste after / before | lines go below / above |
+| ddp / xp | swap lines / characters | teh → the |
 
 :::note Delete is really cut
-Whatever you delete is saved. Delete · move · paste = **moving text**. Whole lines (`dd`, `yy`) paste on a **new line below**.
-:::
-
-:::tip Classic tricks
-`ddp` swaps this line with the one below. `xp` swaps two characters: teh → the.
+Delete · move · `p` = **moving text**.
 :::
 
 # Undo And Redo
@@ -270,13 +256,10 @@ subtitle: u  and  Ctrl+r
 | --- | --- |
 | u | undo the last change (press again to go further back) |
 | Ctrl+r | redo (undo the undo) |
+| U | NOT redo: an old, rarely useful command (press u) |
 
 :::tip One Insert visit = one undo
-Type three paragraphs in one go, and a single `u` removes all three. **Leave Insert mode often.**
-:::
-
-:::warning U is NOT redo
-`U` is an old, rarely useful command. Pressed it by accident? Just press `u`.
+Three paragraphs typed in one go = one `u`. **Leave Insert mode often.**
 :::
 
 # Small Fixes And The Dot
@@ -412,10 +395,8 @@ subtitle: act on the thing the cursor is inside: operator + text object
 
 # Text Objects In Action
 ---
-subtitle: cursor anywhere inside "world"
+subtitle: console.log("Hello world", user.name);  cursor inside "world"
 ---
-
-`console.log("Hello world", user.name);`
 
 | You type | Reads as | Result |
 | --- | --- | --- |
@@ -426,7 +407,7 @@ subtitle: cursor anywhere inside "world"
 | ya) | yank around parens | copies ("Hello world", user.name) |
 
 :::tip Why text objects win
-`cw` needs the cursor at the **start** of the word. `ciw` works from **anywhere** in it. Replace a word with `ciw`; remove it with `daw` (no double spaces left behind).
+`ciw` works from **anywhere** in the word. `daw` removes it with no double space.
 :::
 
 # New Verbs, Same Nouns
@@ -457,7 +438,7 @@ Select first. Then act.
 
 # Three Flavors
 ---
-subtitle: grow the selection with any motion or text object
+subtitle: grow the selection with any motion (on Windows, Ctrl+q if Ctrl+v pastes)
 ---
 
 | Key | Mode | Selects | Shown as |
@@ -467,11 +448,7 @@ subtitle: grow the selection with any motion or text object
 | Ctrl+v | block-wise | a rectangle (a column) | -- VISUAL BLOCK -- |
 
 :::note Two styles, both valid
-Operator + motion: **act, then describe** (`dw`). Visual mode: **select, then act** (`v` `e` `d`). You **see** it first.
-:::
-
-:::tip Windows
-If `Ctrl+v` pastes instead, use `Ctrl+q`. Same thing in Neovim.
+`dw`: act, then describe. `v` `e` `d`: select, then act. You **see** it first.
 :::
 
 # Act On A Selection
@@ -488,16 +465,15 @@ subtitle: most of these drop you back in Normal mode
 | > / < | indent / unindent (. repeats; >> << in Normal mode) |
 | ~  u  U | toggle case / lowercase / UPPERCASE |
 | J | join the lines into one |
-| Esc | cancel, nothing changes |
 
 :::tip You never have to start over
-`o` jumps to the other end of the selection. `gv` re-selects the last one. `viw` / `vi"` select a word / inside quotes.
+`o` other end · `gv` reselect · `viw` / `vi"` word / inside quotes
 :::
 
 # Block Mode Magic
 ---
 layout: two-cols
-subtitle: add "- " to many lines at once
+subtitle: add "- " to many lines at once (only line 1 changes until you press Esc)
 ---
 
 ```text title="before → after"
@@ -514,10 +490,6 @@ eggs          - eggs
 3. I (capital i)
 4. Type "- "
 5. Esc
-
-:::warning Don't panic
-While you type, **only the first line** changes. The text appears on **every line** when you press **Esc**.
-:::
 
 %% ============================================================
 %% LESSON 7
@@ -542,12 +514,11 @@ subtitle: w = write · q = quit · ! = I'm sure, do it anyway
 | :q | quit (only if nothing is unsaved) |
 | :wq | save, then quit |
 | :q! | quit and throw changes away |
-| :x | save only if changed, then quit |
 | :wa  :qa  :wqa | save all / quit all / save all and quit |
-| ZZ  ZQ | Normal-mode shortcuts for :x and :q! |
+| ZZ  ZQ | Normal mode: save and quit / quit, no save |
 
 :::note E37: No write since last change
-That's Neovim **protecting your work**. `:wq` to save and quit · `:q!` to throw the changes away.
+Neovim protecting you: `:wq` to save, `:q!` to discard.
 :::
 
 # Opening And Copying Files
@@ -624,22 +595,17 @@ subtitle: three things that trip beginners
 
 # Substitute
 ---
-subtitle: replace text with one command
+subtitle: forget % = current line only · forget g = first match per line only
 ---
 
 ```text
 :[range]s/old/new/[flags]        e.g.  :%s/colour/color/g
-   │    │  │   │     │
    │    │  │   │     └─ options (g, c, i, ...)
    │    │  │   └─ the replacement
    │    │  └─ what to find (a pattern)
    │    └─ s for substitute
    └─ which lines (default: current line only)
 ```
-
-:::warning Two things people forget
-No **%**: only the **current line**. No **g**: only the **first match per line**. One `u` undoes it all.
-:::
 
 # Flags And Ranges
 ---
@@ -736,15 +702,11 @@ subtitle: splitting the screen
 | --- | --- | --- |
 | :split  /  :sp | Ctrl+w s | split: one above the other |
 | :vsplit  /  :vs | Ctrl+w v | split: side by side |
-| :close | Ctrl+w c | close this window (buffer stays) |
+| :close  /  :q | Ctrl+w c | close this window (buffer stays) |
 | :only | Ctrl+w o | close all OTHER windows |
 |  | Ctrl+w h j k l | move to the window in that direction |
 |  | Ctrl+w w | next window (cycles through all) |
 |  | Ctrl+w = | make all windows equal size |
-
-:::note
-`:q` closes the current **window**. Neovim exits only when the last one closes.
-:::
 
 # Tabs
 ---
@@ -787,22 +749,19 @@ init.lua, a little Lua, options, and key mappings.
 
 # What Is init.lua?
 ---
-subtitle: a small Lua program Neovim runs at startup
+subtitle: Lua that runs at startup: your :set commands, made permanent
 ---
 
-Your `:set number` commands were **temporary**. Putting them in `init.lua` makes them **permanent**.
-
 ```bash title="create it (first time only)"
-mkdir -p ~/.config/nvim && nvim ~/.config/nvim/init.lua       # Linux / macOS
-mkdir $env:LOCALAPPDATA\nvim; nvim $env:LOCALAPPDATA\nvim\init.lua   # Windows
+# Linux / macOS
+mkdir -p ~/.config/nvim && nvim ~/.config/nvim/init.lua
+# Windows
+mkdir $env:LOCALAPPDATA\nvim; nvim $env:LOCALAPPDATA\nvim\init.lua
+# not sure where? inside nvim:  :echo stdpath("config")
 ```
 
-:::tip Ask Neovim
-`:echo stdpath("config")` prints the folder. (Old guides use `init.vim`. Lua is the modern choice.)
-:::
-
 :::warning Wait a few days first
-Use **plain, unconfigured** Neovim for a while, so you know what's Neovim and what's your config.
+Learn **plain** Neovim first, so you know what's yours.
 :::
 
 # Lua In 60 Seconds
@@ -832,7 +791,6 @@ subtitle: :set shiftwidth=2 (temporary) becomes vim.opt.shiftwidth = 2 (permanen
 vim.opt.number = true          -- line numbers
 vim.opt.relativenumber = true  -- plan 5j, d3k...
 vim.opt.shiftwidth = 2         -- >> indents by 2
-vim.opt.tabstop = 2            -- Tab looks like 2
 vim.opt.expandtab = true       -- Tab inserts spaces
 vim.opt.ignorecase = true      -- search ignores case
 vim.opt.smartcase = true       -- ...unless capitals
@@ -840,10 +798,6 @@ vim.opt.scrolloff = 8          -- context around cursor
 vim.opt.clipboard = "unnamedplus" -- system clipboard
 vim.opt.undofile = true        -- undo survives restarts
 ```
-
-:::tip Inspect any option
-`:set shiftwidth?` shows its value. `:help 'shiftwidth'` explains it.
-:::
 
 # Key Mappings
 ---
@@ -854,13 +808,11 @@ subtitle: vim.keymap.set(mode, keys, action, options)
 vim.g.mapleader = " "   -- Space is the leader: set it FIRST
 local map = vim.keymap.set
 map("n", "<leader>w", "<cmd>write<CR>", { desc = "Save" })
-map("n", "<leader>q", "<cmd>quit<CR>", { desc = "Quit" })
-map("n", "<Esc>", "<cmd>nohlsearch<CR>")
 map("v", ">", ">gv", { desc = "Indent, keep selection" })
 ```
 
-:::note The leader key
-A prefix for **your** shortcuts. Space does nothing useful in Normal mode, so `<leader>w` = press **Space**, then **w**. Check a key is free first with `:map <C-l>`.
+:::note The leader key: a prefix for YOUR shortcuts
+`<leader>w` = press **Space**, then **w**. Check a key is free: `:map <C-l>`
 :::
 
 # Applying And Fixing
@@ -1074,25 +1026,13 @@ subtitle: symptom → cause → fix
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
-| can't get out | stuck in a mode | Esc, then :q! or :wq |
+| can't get out | stuck in a mode | Esc, :q! or :wq |
 | commands typed as text | in Insert mode | Esc, then u |
-| letters do strange things | in Normal mode | u until fixed, then i |
+| letters do strange things | in Normal mode | u, then i |
 | everything acts backwards | Caps Lock is on | turn it off, u |
 | E37: No write since... | quitting unsaved | :wq or :q! |
-| E492: Not an editor command | typo (:qw, :WQ) | it's :wq, lowercase |
+| E492 on :qw or :WQ | typo | it's :wq, lowercase |
 
-# More Surprises
----
-subtitle: symptom → cause → fix
----
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| "recording @q" | pressed q + a letter | press q again |
-| Neovim vanished | Ctrl+z suspended it | fg, Enter |
-| screen froze | Ctrl+s paused it | Ctrl+q |
-| paste gives deleted text | delete is cut | "0p = last yank |
-| no system clipboard | separate clipboards | "+y or unnamedplus |
 
 # Swap File Warning
 ---
