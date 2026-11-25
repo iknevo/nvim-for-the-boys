@@ -521,7 +521,7 @@ subtitle: w = write · q = quit · ! = I'm sure, do it anyway
 Neovim protecting you: `:wq` to save, `:q!` to discard.
 :::
 
-# Opening And Copying Files
+# Opening Files
 ---
 subtitle: from inside Neovim
 ---
@@ -580,9 +580,6 @@ subtitle: matches highlight live, and wrap around at the end
 | *  /  # | whole word under the cursor, forward / backward |
 | :noh  or  Ctrl+l | clear the search highlights |
 
-:::note Search is a motion too
-`d/sky` **Enter** deletes up to the next "sky". The grammar strikes again.
-:::
 
 # Search Gotchas
 ---
@@ -628,7 +625,6 @@ subtitle: mix and match
 | (none) | current line |
 | % | whole file |
 | 5,10 | lines 5 to 10 |
-| '<,'> | the Visual selection |
 
 # Recipes
 ---
@@ -639,10 +635,8 @@ subtitle: practical substitutions
 | --- | --- |
 | replace everywhere | :%s/colour/color/g |
 | same, ask each time | :%s/colour/color/gc |
-| whole word only | :%s/\<cat\>/dog/g |
 | only lines 10 to 40 | :10,40s/oldName/newName/g |
 | count TODOs | :%s/TODO//gn |
-| strip trailing spaces | :%s/\s\+$//e |
 | inside a selection | select with V, press :, type s/old/new/g |
 
 %% ============================================================
@@ -687,7 +681,6 @@ subtitle: your open files
 | :bn  /  :bp | next / previous buffer |
 | :b 3  /  :b name | go to buffer 3 / by name (Tab completes) |
 | :bd | close the current buffer |
-| Ctrl+^ | toggle between the last two buffers |
 
 :::tip Your file is safe
 `:bd` closes the file **in Neovim**. It does **not** delete anything from your disk. `:wa` saves every buffer.
@@ -784,50 +777,58 @@ Neovim gives Lua a `vim` object: `vim.opt`, `vim.keymap`...
 
 # Options
 ---
-subtitle: :set shiftwidth=2 (temporary) becomes vim.opt.shiftwidth = 2 (permanent)
+subtitle: vim.opt.NAME = VALUE is :set NAME=VALUE, saved for every session
 ---
 
-```lua title="a good beginner set"
-vim.opt.number = true          -- line numbers
-vim.opt.relativenumber = true  -- plan 5j, d3k...
-vim.opt.shiftwidth = 2         -- >> indents by 2
-vim.opt.expandtab = true       -- Tab inserts spaces
-vim.opt.ignorecase = true      -- search ignores case
-vim.opt.smartcase = true       -- ...unless capitals
-vim.opt.scrolloff = 8          -- context around cursor
-vim.opt.clipboard = "unnamedplus" -- system clipboard
-vim.opt.undofile = true        -- undo survives restarts
+```lua title="init.lua: what you see, how you indent"
+vim.opt.number = true         -- show line numbers
+vim.opt.relativenumber = true -- count from the cursor,
+                              -- so you can read off 5j
+vim.opt.scrolloff = 8         -- keep 8 lines of context
+                              -- above and below cursor
+vim.opt.shiftwidth = 2        -- >> and << move 2 columns
+vim.opt.expandtab = true      -- the Tab key types spaces
 ```
+
+:::note Reading an option
+`true` / `false` switch it on or off. Numbers and "text" set a value.
+:::
+
+# More Options
+---
+subtitle: search, clipboard and undo
+---
+
+```lua title="init.lua: search, clipboard, undo"
+vim.opt.ignorecase = true         -- /hello finds Hello
+vim.opt.smartcase = true          -- /Hello finds only Hello
+vim.opt.clipboard = "unnamedplus" -- y and p share the
+                                  -- system clipboard
+vim.opt.undofile = true           -- undo survives restarts
+```
+
+:::warning Clipboard on Linux needs a helper
+Install `wl-clipboard` (Wayland) or `xclip` (X11).
+:::
 
 # Key Mappings
 ---
 subtitle: vim.keymap.set(mode, keys, action, options)
 ---
 
-```lua title="keymaps"
-vim.g.mapleader = " "   -- Space is the leader: set it FIRST
-local map = vim.keymap.set
+```lua title="init.lua: your own shortcuts"
+vim.g.mapleader = " "      -- Space is <leader>: set FIRST
+local map = vim.keymap.set -- short name, shorter lines
+
+-- Normal mode ("n"): Space then w runs :write
 map("n", "<leader>w", "<cmd>write<CR>", { desc = "Save" })
-map("v", ">", ">gv", { desc = "Indent, keep selection" })
+
+-- Visual mode ("x"): > indents, gv selects again
+map("x", ">", ">gv", { desc = "Indent, keep selection" })
 ```
 
-:::note The leader key: a prefix for YOUR shortcuts
-`<leader>w` = press **Space**, then **w**. Check a key is free: `:map <C-l>`
-:::
-
-# Applying And Fixing
----
-subtitle: when you change init.lua
----
-
-- Save with :w, then quit and restart Neovim
-- An error at startup shows the line number in init.lua
-- Jump there with :15 and look for a missing quote, comma, or end
-- Switch a line off by commenting it out with --
-- Run :checkhealth when something seems wrong
-
-:::note Growing later
-Split into `lua/config/options.lua` + `require("config.options")`. One file is fine for a long time.
+:::note Reading a mapping
+`<cmd>...<CR>` runs a command (`<CR>` is Enter). `desc` labels it in `:map`.
 :::
 
 %% ============================================================
@@ -859,22 +860,38 @@ require("lazy").setup({
 
 `:Lazy` opens a window to install, update and inspect plugins.
 
-# The Ecosystem Map
+# Ecosystem: Code
 ---
-subtitle: words you'll hear constantly
+subtitle: plugins that help Neovim understand your code
 ---
 
-| Idea | Gives you | Popular plugins |
-| --- | --- | --- |
-| LSP | definitions, errors, rename | nvim-lspconfig, mason |
-| Treesitter | accurate highlighting | nvim-treesitter |
-| Completion | suggestions as you type | blink.cmp, nvim-cmp |
-| Fuzzy finder | find anything by name | telescope, fzf-lua |
-| File explorer | browse and edit files | oil.nvim, neo-tree |
-| Git | changes in the gutter | gitsigns, fugitive |
+:::note LSP (Language Server Protocol) · nvim-lspconfig, mason
+A language server reads your project. Neovim asks it for definitions, errors and renames.
+:::
 
-:::note LSP = Language Server Protocol
-One **language server** per language. Neovim's built-in client talks to all of them.
+:::note Treesitter · nvim-treesitter
+Parses code into a tree, so colours and indenting follow the real syntax.
+:::
+
+:::note Completion · blink.cmp, nvim-cmp
+Suggestions as you type, from the language server, the file and snippets.
+:::
+
+# Ecosystem: Workflow
+---
+subtitle: plugins for finding files and seeing your changes
+---
+
+:::tip Fuzzy finder · telescope, fzf-lua
+Type a few letters to jump anywhere: `usrctl` finds `userController.js`.
+:::
+
+:::tip File explorer · oil.nvim, neo-tree
+Browse folders. In oil, rename or delete files by editing the list as text.
+:::
+
+:::tip Git · gitsigns, fugitive
+gitsigns marks changed lines in the margin. fugitive runs Git from Neovim.
 :::
 
 # Try The Built-ins First
@@ -1011,55 +1028,6 @@ subtitle: buffers, windows, tabs, help
 %% MISTAKES
 %% ============================================================
 
-# Common Mistakes
----
-layout: section
-subtitle: and how to recover from every one of them
----
-
-Nothing here is permanent. `u` is your friend.
-
-# When Things Go Weird
----
-subtitle: symptom → cause → fix
----
-
-| Symptom | Cause | Fix |
-| --- | --- | --- |
-| can't get out | stuck in a mode | Esc, :q! or :wq |
-| commands typed as text | in Insert mode | Esc, then u |
-| letters do strange things | in Normal mode | u, then i |
-| everything acts backwards | Caps Lock is on | turn it off, u |
-| E37: No write since... | quitting unsaved | :wq or :q! |
-| E492 on :qw or :WQ | typo | it's :wq, lowercase |
-
-
-# Swap File Warning
----
-subtitle: E325: ATTENTION (a swap file already exists)
----
-
-The file is **open elsewhere**, or Neovim **crashed** last time.
-
-| Option | Choose it when |
-| --- | --- |
-| (O)pen Read-Only | you just want to look |
-| (E)dit anyway | you're sure it's not open elsewhere |
-| (R)ecover | it crashed and you want unsaved work back |
-| (D)elete it | the swap file is stale |
-| (Q)uit / (A)bort | back out and figure it out |
-
-# Config Gone Wrong?
----
-layout: center
-subtitle: go back to plain Neovim
----
-
-```bash
-nvim --clean                          # start with no config at all
-mv ~/.config/nvim ~/.config/nvim-backup   # set your config aside
-```
-
 Rebuild slowly, adding only what you understand.
 
 %% ============================================================
@@ -1122,24 +1090,6 @@ subtitle: always available, even offline
 :::tip Inside help
 **Ctrl+]** follows a link, **Ctrl+o** goes back, `:q` closes help.
 :::
-
-# Online Resources
----
-subtitle: official docs and trusted learning material
----
-
-| Resource | Where |
-| --- | --- |
-| Neovim docs | neovim.io/doc |
-| Lua guide | neovim.io/doc/user/lua-guide.html |
-| Install guide | github.com/neovim/neovim (INSTALL.md) |
-| kickstart.nvim | github.com/nvim-lua/kickstart.nvim |
-| Learn Vim (the Smart Way) | github.com/iggredible/Learn-Vim |
-| Practical Vim (book) | Drew Neil, Pragmatic Bookshelf |
-| Vim Adventures (game) | vim-adventures.com |
-| lazy.nvim 'plugin manager' | lazy.folke.io |
-| LazyVim 'distro' | lazyvim.org |
-| Plugins and community | awesome-neovim · dotfyle.com · r/neovim |
 
 # Happy Editing
 ---
