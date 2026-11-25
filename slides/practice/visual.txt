@@ -1,0 +1,11 @@
+Monday: write report
+Tuesday: team meeting
+Wednesday: write report
+Thursday: code review
+Friday: plan next week
+
+if (isWeekend) {
+relax();
+readBook();
+callFamily();
+}

@@ -1,0 +1,27 @@
+{
+  "name": "talktui",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "deck": "./src/cli.tsx"
+  },
+  "scripts": {
+    "deck": "bun run src/cli.tsx",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "19.2.17"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@opentui/core": "0.4.2",
+    "@opentui/keymap": "0.4.2",
+    "@opentui/react": "0.4.2",
+    "effect": "4.0.0-beta.91",
+    "react": "19.2.7"
+  }
+}
