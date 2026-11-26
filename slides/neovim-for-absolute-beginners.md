@@ -501,8 +501,6 @@ layout: section
 subtitle: Saving and Quitting
 ---
 
-And opening files, from Neovim and from the terminal.
-
 # Save And Quit
 ---
 subtitle: w = write · q = quit · ! = I'm sure, do it anyway
@@ -520,40 +518,6 @@ subtitle: w = write · q = quit · ! = I'm sure, do it anyway
 :::note E37: No write since last change
 Neovim protecting you: `:wq` to save, `:q!` to discard.
 :::
-
-# Opening Files
----
-subtitle: from inside Neovim
----
-
-| Command | Does |
-| --- | --- |
-| :e notes.txt | open notes.txt (created on first :w if new) |
-| :e! | reload from disk, discarding unsaved changes |
-| :e . | simple file browser for the current folder |
-| :w backup.txt | write a copy, keep editing the original |
-| :saveas new.txt | real "Save As": continue editing the new file |
-
-:::tip Tab completion
-Type `:e no` and press **Tab**. Neovim completes file names for you.
-:::
-
-# From The Terminal
----
-layout: code
-subtitle: your terminal always has a current folder
----
-
-```bash title="getting around, then launching nvim"
-pwd                   # where am I?
-ls                    # what's in this folder?
-cd projects           # go into "projects" (cd .. goes up)
-
-nvim notes.txt        # open (or create on first save)
-nvim .                # file browser for this folder
-nvim +25 app.js       # open with the cursor on line 25
-nvim -O a.txt b.txt   # two files, side by side
-```
 
 %% ============================================================
 %% LESSON 8
@@ -1041,34 +1005,6 @@ subtitle: Recommended Learning Path
 ---
 
 Little and often: 15–30 minutes a day beats one weekend.
-
-# The Path
----
-subtitle: five stages
----
-
-| Stage | When | Focus |
-| --- | --- | --- |
-| 1. Get comfortable | week 1 | Lessons 1-5, :Tutor, small edits |
-| 2. Build fluency | weeks 2-3 | Lessons 6-9, real work |
-| 3. Personalize | weeks 3-4 | Lesson 10, a small init.lua |
-| 4. Power features | month 2 | registers, macros, marks |
-| 5. Grow into an IDE | when ready | kickstart.nvim, plugins slowly |
-
-# Next Motions To Learn
----
-subtitle: one or two per day
----
-
-| Command | What it does |
-| --- | --- |
-| f{c}  t{c} | jump to / just before character c |
-| ;  , | repeat last f/t forward / backward |
-| % | jump between matching brackets |
-| {  } | previous / next blank line |
-| Ctrl+o  Ctrl+i | jump back / forward in history |
-| ip  ap | paragraph text objects (dap) |
-| it  at | HTML tag text objects |
 
 %% ============================================================
 %% RESOURCES
